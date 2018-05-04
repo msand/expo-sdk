@@ -59,6 +59,8 @@
     "react-native-gesture-handler": "1.0.0-alpha.41",
     "react-native-maps": "0.21.0",
     "react-native-svg": "6.2.2",
+    "react-native-svg-web": "^1.0.1",
+    "react-native-web-maps": "^0.1.0",
     "uuid-js": "^0.7.5",
     "websql": "https://github.com/expo/node-websql/archive/18.0.0.tar.gz"
   },
