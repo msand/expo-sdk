@@ -3,7 +3,7 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 
-export default class AppLoading extends React.Component {
+export default class AppLoading extends React.Component<{}> {
   render() {
     return (
       <View>

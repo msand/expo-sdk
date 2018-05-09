@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default class AppLoading extends React.Component {
+export default class AppLoading extends React.Component<{}> {
   render() {
     return (
       <View style={styles.container}>
