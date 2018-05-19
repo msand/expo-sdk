@@ -44,6 +44,7 @@
   "homepage": "https://github.com/expo/expo-sdk",
   "dependencies": {
     "@expo/vector-icons": "^6.3.1",
+    "@expo/websql": "^1.0.1",
     "babel-preset-expo": "^4.0.0",
     "fbemitter": "^2.1.1",
     "invariant": "^2.2.2",
@@ -61,8 +62,7 @@
     "react-native-svg": "6.2.2",
     "react-native-svg-web": "^1.0.1",
     "react-native-web-maps": "^0.1.0",
-    "uuid-js": "^0.7.5",
-    "websql": "https://github.com/expo/node-websql/archive/18.0.0.tar.gz"
+    "uuid-js": "^0.7.5"
   },
   "devDependencies": {
     "@expo/npm-proofread": "^1.0.1",
