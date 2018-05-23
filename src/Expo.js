@@ -226,6 +226,9 @@ module.exports = {
   get Speech() {
     return require('./Speech');
   },
+  get StoreReview() {
+    return require('./StoreReview');
+  },
   get Updates() {
     return require('./Updates');
   },
