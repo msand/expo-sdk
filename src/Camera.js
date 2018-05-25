@@ -14,6 +14,12 @@ import type { FaceFeature } from './FaceDetector';
 
 type PictureOptions = {
   quality?: number,
+  base64?: boolean,
+  exif?:boolean,
+  onPictureSaved?: Function,
+  // internal
+  id?: number,
+  fastMode?: boolean,
 };
 
 type TrackedFaceFeature = FaceFeature & {
@@ -26,12 +32,29 @@ type RecordingOptions = {
   quality?: number | string,
 };
 
+type CapturedPicture = {
+  width: number,
+  height: number,
+  uri: string,
+  base64?: string,
+  exif?: Object,
+};
+
+type RecordingResult = {
+  uri: string,
+};
+
 type EventCallbackArgumentsType = {
   nativeEvent: Object,
 };
 
 type MountErrorNativeEventType = {
   message: string,
+};
+
+type PictureSavedNativeEventType = {
+  data: CapturedPicture,
+  id: number,
 };
 
 type PropsType = ViewPropTypes & {
@@ -48,6 +71,7 @@ type PropsType = ViewPropTypes & {
   whiteBalance?: number | string,
   faceDetectionLandmarks?: number,
   autoFocus?: string | boolean | number,
+  pictureSize?: string,
   faceDetectionClassifications?: number,
   onMountError?: MountErrorNativeEventType => void,
   onFacesDetected?: ({ faces: Array<TrackedFaceFeature> }) => void,
@@ -57,6 +81,9 @@ const CameraManager: Object =
   NativeModules.ExponentCameraManager || NativeModules.ExponentCameraModule;
 
 const EventThrottleMs = 500;
+
+const _PICTURE_SAVED_CALLBACKS = {};
+let _GLOBAL_PICTURE_ID = 1;
 
 export default class Camera extends React.Component<PropsType> {
   static Constants = {
@@ -98,6 +125,7 @@ export default class Camera extends React.Component<PropsType> {
     flashMode: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     whiteBalance: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     autoFocus: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.bool]),
+    pictureSize: PropTypes.string,
   };
 
   static defaultProps: Object = {
@@ -125,17 +153,23 @@ export default class Camera extends React.Component<PropsType> {
     this._lastEventsTimes = {};
   }
 
-  async takePictureAsync(options?: PictureOptions) {
+  async takePictureAsync(options?: PictureOptions): Promise<CapturedPicture> {
     if (!options) {
       options = {};
     }
     if (!options.quality) {
       options.quality = 1;
     }
+    if (options.onPictureSaved) {
+      const id = _GLOBAL_PICTURE_ID++;
+      _PICTURE_SAVED_CALLBACKS[id] = options.onPictureSaved;
+      options.id = id;
+      options.fastMode = true;
+    }
     return await CameraManager.takePicture(options, this._cameraHandle);
   }
 
-  async getSupportedRatiosAsync() {
+  async getSupportedRatiosAsync(): Promise<Array<string>> {
     if (Platform.OS === 'android') {
       return await CameraManager.getSupportedRatios(this._cameraHandle);
     } else {
@@ -143,7 +177,11 @@ export default class Camera extends React.Component<PropsType> {
     }
   }
 
-  async recordAsync(options?: RecordingOptions) {
+  async getAvailablePictureSizesAsync(ratio?: string): Promise<Array<string>> {
+    return await CameraManager.getAvailablePictureSizes(ratio, this._cameraHandle);
+  }
+
+  async recordAsync(options?: RecordingOptions): Promise<RecordingResult> {
     if (!options || typeof options !== 'object') {
       options = {};
     } else if (typeof options.quality === 'string') {
@@ -154,6 +192,14 @@ export default class Camera extends React.Component<PropsType> {
 
   stopRecording() {
     CameraManager.stopRecording(this._cameraHandle);
+  }
+
+  pausePreview() {
+    CameraManager.pausePreview(this._cameraHandle);
+  }
+
+  resumePreview() {
+    CameraManager.resumePreview(this._cameraHandle);
   }
 
   _onCameraReady = () => {
@@ -167,6 +213,14 @@ export default class Camera extends React.Component<PropsType> {
       this.props.onMountError(nativeEvent);
     }
   };
+
+  _onPictureSaved = ({ nativeEvent }: { nativeEvent: PictureSavedNativeEventType }) => {
+    const callback = _PICTURE_SAVED_CALLBACKS[nativeEvent.id];
+    if (callback) {
+      callback(nativeEvent.data);
+      delete _PICTURE_SAVED_CALLBACKS[nativeEvent.id];
+    }
+  }
 
   _onObjectDetected = (callback: ?Function) => ({ nativeEvent }: EventCallbackArgumentsType) => {
     const { type } = nativeEvent;
@@ -205,6 +259,7 @@ export default class Camera extends React.Component<PropsType> {
         ref={this._setReference}
         onCameraReady={this._onCameraReady}
         onMountError={this._onMountError}
+        onPictureSaved={this._onPictureSaved}
         onBarCodeRead={this._onObjectDetected(this.props.onBarCodeRead)}
         onFacesDetected={this._onObjectDetected(this.props.onFacesDetected)}
       />
@@ -245,6 +300,7 @@ const ExponentCamera = requireNativeComponent('ExponentCamera', Camera, {
   nativeOnly: {
     onCameraReady: true,
     onMountError: true,
+    onPictureSaved: true,
     onBarCodeRead: true,
     onFaceDetected: true,
     faceDetectorEnabled: true,
