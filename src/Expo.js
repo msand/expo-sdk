@@ -142,6 +142,9 @@ module.exports = {
   get Amplitude() {
     return require('./Amplitude').default;
   },
+  get AR() {
+    return require('./AR');
+  },
   get Audio() {
     return require('./av/Audio');
   },
