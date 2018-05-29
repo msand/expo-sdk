@@ -1,8 +1,9 @@
 // @flow
 
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules, NativeEventEmitter, Platform } from 'react-native';
 
 const { ExponentMediaLibrary: MediaLibrary } = NativeModules;
+const eventEmitter = new NativeEventEmitter(MediaLibrary);
 
 type MediaTypeValue = 'audio' | 'photo' | 'video' | 'unknown';
 type SortByKey =
@@ -89,6 +90,10 @@ type PagedInfo<T> = {
 
 type AssetRef = Asset | string;
 type AlbumRef = Album | string;
+
+type Subscription = {
+  remove: () => void,
+};
 
 function arrayize(item: any): Array<any> {
   if (Array.isArray(item)) {
@@ -255,6 +260,38 @@ export async function getAssetsAsync(assetsOptions: AssetsOptions = {}): Promise
   options.mediaType.forEach(checkMediaType);
 
   return MediaLibrary.getAssetsAsync(options);
+}
+
+export function addListener(listener: () => void): Subscription {
+  // RCTEventEmitter on iOS automatically calls startObserving and stopObserving as listeners are
+  // added and removed
+  if (Platform.OS === 'android') {
+    if (eventEmitter.listeners(MediaLibrary.CHANGE_LISTENER_NAME).length === 0) {
+      MediaLibrary.startObserving();
+    }
+  }
+
+  const subscription = eventEmitter.addListener(MediaLibrary.CHANGE_LISTENER_NAME, listener);
+  subscription.remove = () => this.removeSubscription(subscription);
+  return subscription;
+}
+
+export function removeSubscription(subscription: Subscription): void {
+  if (Platform.OS === 'android') {
+    if (eventEmitter.listeners(MediaLibrary.CHANGE_LISTENER_NAME).length === 1) {
+      MediaLibrary.stopObserving();
+    }
+  }
+
+  eventEmitter.removeSubscription(subscription);
+}
+
+export function removeAllListeners(): void {
+  if (Platform.OS === 'android') {
+    MediaLibrary.stopObserving();
+  }
+
+  eventEmitter.removeAllListeners();
 }
 
 // iOS only
