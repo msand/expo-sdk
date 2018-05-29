@@ -23,6 +23,9 @@ module.exports = {
     return require('./Payments');
   },
   get Print() {
+    console.warn(
+      'Print is no longer in DangerZone, you can now import it directly from the expo package.'
+    );
     return require('./Print');
   },
   get DeviceMotion() {

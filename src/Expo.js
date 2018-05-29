@@ -205,6 +205,9 @@ module.exports = {
   get Permissions() {
     return require('./Permissions');
   },
+  get Print() {
+    return require('./Print');
+  },
   get Facebook() {
     return require('./Facebook').default;
   },
