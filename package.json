@@ -59,7 +59,7 @@
     "react-native-branch": "2.2.5",
     "react-native-gesture-handler": "1.0.4",
     "react-native-maps": "0.21.0",
-    "react-native-reanimated": "^1.0.0-alpha.2",
+    "react-native-reanimated": "1.0.0-alpha.3",
     "react-native-svg": "6.2.2",
     "react-native-svg-web": "^1.0.1",
     "react-native-web-maps": "^0.1.0",
