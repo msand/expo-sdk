@@ -2,7 +2,7 @@
 
 import { NativeModules, Platform, NativeEventEmitter } from 'react-native';
 import Constants from './Constants';
-const { ExponentAR } = NativeModules;
+const ExponentAR = NativeModules.ExponentAR || { _notPresent: true };
 
 const emitter = new NativeEventEmitter(ExponentAR);
 
@@ -258,14 +258,28 @@ const AvailabilityErrorMessages = {
 };
 
 export function isAvailable() {
-  if (!Constants.isDevice) {
-    throw AvailabilityErrorMessages.Simulator;
-  } else if (Platform.OS !== 'ios') {
-    throw `${AvailabilityErrorMessages.ARKitOnlyOnIOS} ${Platform.OS} device`;
-  } else if (Constants.deviceYearClass < 2015) {
-    throw `${AvailabilityErrorMessages.ANineChip} ${Constants.deviceYearClass} device`;
+  if (
+    !Constants.isDevice || // Prevent Simulators
+    Platform.OS !== 'ios' || // Device is iOS
+    Constants.deviceYearClass < 2015 || // Device has A9 chip
+    !ExponentAR.isSupported || // ARKit is included in the build
+    !ExponentAR.startAsync // Older SDK versions (27 and lower) that are fully compatible
+  ) {
+    return false;
   }
+
   return true;
+}
+
+export function getUnavailabilityReason() {
+  if (!Constants.isDevice) {
+    return AvailabilityErrorMessages.Simulator;
+  } else if (Platform.OS !== 'ios') {
+    return `${AvailabilityErrorMessages.ARKitOnlyOnIOS} ${Platform.OS} device`;
+  } else if (Constants.deviceYearClass < 2015) {
+    return `${AvailabilityErrorMessages.ANineChip} ${Constants.deviceYearClass} device`;
+  }
+  return 'Unknown Reason';
 }
 
 export function onFrameDidUpdate(listener) {
@@ -293,6 +307,11 @@ export function onSessionInterruptionEnded(listener) {
 }
 
 function addListener(eventType, event) {
+  if (!isAvailable()) {
+    return {
+      remove: () => {},
+    };
+  }
   let listener = emitter.addListener(eventType, event);
   listener.remove = () => this.removeListener && this.removeListener(listener);
 
@@ -300,102 +319,127 @@ function addListener(eventType, event) {
 }
 
 function removeListener(listener) {
+  if (!isAvailable()) return;
   emitter.removeSubscription(listener);
 }
 
 export function removeAllListeners(eventType) {
+  if (!isAvailable()) return;
   emitter.removeAllListeners(eventType);
 }
 
 export function performHitTest(point, types: HitTestResultType) {
+  if (!isAvailable()) return;
   return ExponentAR.performHitTest(point, types);
 }
 
 export async function setDetectionImagesAsync(images) {
+  if (!isAvailable()) return;
   return ExponentAR.setDetectionImagesAsync(images);
 }
 
 export function getCurrentFrame(attributes) {
+  if (!isAvailable()) return;
   return ExponentAR.getCurrentFrame(attributes);
 }
 
 export function getARMatrices(near: number, far: number) {
+  if (!isAvailable()) return;
   return ExponentAR.getARMatrices(near, far);
 }
 
 export function stopAsync() {
+  if (!isAvailable()) return;
   return ExponentAR.stopAsync();
 }
 
 export function startAsync(view, configuration: TrackingConfiguration) {
+  if (!isAvailable()) return;
   return ExponentAR.startAsync(view, configuration);
 }
 
 export function reset() {
+  if (!isAvailable()) return;
   ExponentAR.reset();
 }
 
 export function resume() {
+  if (!isAvailable()) return;
   ExponentAR.resume();
 }
 
 export function pause() {
+  if (!isAvailable()) return;
   ExponentAR.pause();
 }
 
 export function setConfigurationAsync(configuration: TrackingConfiguration) {
+  if (!isAvailable()) return;
   return ExponentAR.setConfigurationAsync(configuration);
 }
 
 export function getProvidesAudioData() {
+  if (!isAvailable()) return;
   return ExponentAR.getProvidesAudioData();
 }
 
 export function setProvidesAudioData(providesAudioData: Boolean) {
+  if (!isAvailable()) return;
   ExponentAR.setProvidesAudioData(providesAudioData);
 }
 
 export function setPlaneDetection(planeDetection: PlaneDetection) {
+  if (!isAvailable()) return;
   ExponentAR.setPlaneDetection(planeDetection);
 }
 
 export function getCameraTexture() {
+  if (!isAvailable()) return;
   return ExponentAR.getCameraTexture();
 }
 
 export function getPlaneDetection() {
+  if (!isAvailable()) return;
   return ExponentAR.getPlaneDetection();
 }
 
 export function setWorldOriginAsync(matrix_float4x4) {
+  if (!isAvailable()) return;
   return ExponentAR.setWorldOriginAsync(matrix_float4x4);
 }
 
 export function setLightEstimationEnabled(value: Boolean) {
+  if (!isAvailable()) return;
   ExponentAR.setLightEstimationEnabled(value);
 }
 
 export function getLightEstimationEnabled() {
+  if (!isAvailable()) return;
   return ExponentAR.getLightEstimationEnabled();
 }
 
 export function setAutoFocusEnabled(value: Boolean) {
+  if (!isAvailable()) return;
   ExponentAR.setAutoFocusEnabled(value);
 }
 
 export function getAutoFocusEnabled() {
+  if (!isAvailable()) return;
   return ExponentAR.getAutoFocusEnabled();
 }
 
 export function setWorldAlignment(worldAlignment: WorldAlignment) {
+  if (!isAvailable()) return;
   ExponentAR.setWorldAlignment(worldAlignment);
 }
 
 export function getWorldAlignment() {
+  if (!isAvailable()) return;
   return ExponentAR.getWorldAlignment();
 }
 
 export function isConfigurationAvailable(configuration: TrackingConfiguration) {
+  if (!isAvailable()) return;
   return ExponentAR[configuration];
 }
 
