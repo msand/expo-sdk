@@ -230,7 +230,7 @@ export default {
       if (IS_USING_NEW_BINARY) {
         // delete the legacy channel from AsyncStorage so this codepath isn't triggered anymore
         _legacyDeleteChannel(notification.channelId);
-        return ExponentNotifications.presentLocalNotification(notification, _channel);
+        return ExponentNotifications.presentLocalNotificationWithChannel(notification, _channel);
       } else {
         // TODO: remove this codepath before releasing, it will never be triggered on SDK 28+
         // channel does not actually exist, so add its settings to the individual notification
@@ -339,7 +339,11 @@ export default {
       if (IS_USING_NEW_BINARY) {
         // delete the legacy channel from AsyncStorage so this codepath isn't triggered anymore
         _legacyDeleteChannel(notification.channelId);
-        return ExponentNotifications.scheduleLocalNotification(notification, options, _channel);
+        return ExponentNotifications.scheduleLocalNotificationWithChannel(
+          notification,
+          options,
+          _channel
+        );
       } else {
         // TODO: remove this codepath before releasing, it will never be triggered on SDK 28+
         // channel does not actually exist, so add its settings to the individual notification
