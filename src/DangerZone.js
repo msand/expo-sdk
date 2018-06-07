@@ -8,13 +8,13 @@ module.exports = {
     return require('lottie-react-native');
   },
   get Branch() {
-    return require('./Branch').default;
+    return require('react-native-branch').default;
   },
   get GestureHandler() {
     console.warn(
       'GestureHandler is no longer in DangerZone, you can now import it directly from the expo package.'
     );
-    return require('./GestureHandler');
+    return require('react-native-gesture-handler');
   },
   get Localization() {
     return require('./Localization').default;

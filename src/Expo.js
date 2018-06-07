@@ -3,8 +3,12 @@ import './environment/validate';
 import './environment/logging';
 import './Location'; // polyfill navigator.geolocation
 
-import { NativeModules } from 'react-native';
+import { NativeModules, YellowBox } from 'react-native';
 import Constants from './Constants';
+
+// ignore annoying deprecation warnings stemming from react-native JS internals
+// TODO: remove this once there are no more calls to isMounted() in react-native
+YellowBox.ignoreWarnings(['Warning: isMounted(...) is deprecated', 'Module RCTImageLoader']);
 
 if (typeof Constants.manifest.env === 'object') {
   Object.assign(process.env, Constants.manifest.env);
@@ -111,7 +115,7 @@ module.exports = {
     return require('./FaceDetector').default;
   },
   get GestureHandler() {
-    return require('./GestureHandler').default;
+    return require('react-native-gesture-handler');
   },
   get KeepAwake() {
     return require('./KeepAwake').default;
@@ -120,7 +124,7 @@ module.exports = {
     return require('./effects/LinearGradient').default;
   },
   get MapView() {
-    return require('./MapView').default;
+    return require('react-native-maps').default;
   },
   get Modal() {
     return require('./modal/Modal').default;
