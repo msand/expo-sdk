@@ -1,10 +1,335 @@
 // @flow
+import invariant from 'invariant';
+import * as React from 'react';
+import {
+  Dimensions,
+  findNodeHandle,
+  NativeEventEmitter,
+  NativeModules,
+  Platform,
+} from 'react-native';
 
-import { NativeModules, Platform, NativeEventEmitter } from 'react-native';
 import Constants from './Constants';
-const ExponentAR = NativeModules.ExponentAR || { _notPresent: true };
+
+const ExponentAR = NativeModules.ExponentAR || {};
 
 const emitter = new NativeEventEmitter(ExponentAR);
+
+export type BlendShape = $Enum<{
+  browDown_L: string,
+  browDown_R: string,
+  browInnerUp: string,
+  browOuterUp_L: string,
+  browOuterUp_R: string,
+  cheekPuff: string,
+  cheekSquint_L: string,
+  cheekSquint_R: string,
+  eyeBlink_L: string,
+  eyeBlink_R: string,
+  eyeLookDown_L: string,
+  eyeLookDown_R: string,
+  eyeLookIn_L: string,
+  eyeLookIn_R: string,
+  eyeLookOut_L: string,
+  eyeLookOut_R: string,
+  eyeLookUp_L: string,
+  eyeLookUp_R: string,
+  eyeSquint_L: string,
+  eyeSquint_R: string,
+  eyeWide_L: string,
+  eyeWide_R: string,
+  jawForward: string,
+  jawLeft: string,
+  jawOpen: string,
+  jawRight: string,
+  mouthClose: string,
+  mouthDimple_L: string,
+  mouthDimple_R: string,
+  mouthFrown_L: string,
+  mouthFrown_R: string,
+  mouthFunnel: string,
+  mouthLeft: string,
+  mouthLowerDown_L: string,
+  mouthLowerDown_R: string,
+  mouthPress_L: string,
+  mouthPress_R: string,
+  mouthPucker: string,
+  mouthRight: string,
+  mouthRollLower: string,
+  mouthRollUpper: string,
+  mouthShrugLower: string,
+  mouthShrugUpper: string,
+  mouthSmile_L: string,
+  mouthSmile_R: string,
+  mouthStretch_L: string,
+  mouthStretch_R: string,
+  mouthUpperUp_L: string,
+  mouthUpperUp_R: string,
+  noseSneer_L: string,
+  noseSneer_R: string,
+}>;
+
+/**
+ * Plane Detection
+ * Options for whether and how ARKit detects flat surfaces in captured images.
+ * https://developer.apple.com/documentation/arkit/arplanedetection?language
+ */
+export type PlaneDetection = $Enum<{
+  /**
+   * No plane detection is run.
+   */
+  none: string,
+  /**
+   * Plane detection determines horizontal planes in the scene.
+   */
+  horizontal: string,
+  /**
+   * Plane detection determines vertical planes in the scene.
+   */
+  vertical: string,
+}>;
+
+/**
+ * Hit Test Result Type
+ * Possible types for specifying a hit-test search, or for the result of a hit-test search.
+ * https://developer.apple.com/documentation/arkit/arhittestresulttype
+ */
+export type HitTestResultType = $Enum<{
+  /**
+   * Result type from intersecting the nearest feature point.
+   */
+  featurePoint: string,
+  /**
+   * Result type from intersecting a horizontal plane estimate, determined for the current frame.
+   */
+  horizontalPlane: string,
+  /**
+   * Result type from intersecting a vertical plane estimate, determined for the current frame.
+   */
+  verticalPlane: string,
+  /**
+   * Result type from intersecting with an existing plane anchor.
+   */
+  existingPlane: string,
+  /**
+   * Result type from intersecting with an existing plane anchor, taking into account the plane’s extent.
+   */
+  existingPlaneUsingExtent: string,
+  /**
+   * Result type from intersecting with an existing plane anchor, taking into account the plane’s geometry.
+   */
+  existingPlaneUsingGeometry: string,
+}>;
+
+/**
+ * World Alignment
+ * Options for how ARKit constructs a scene coordinate system based on real-world device motion.
+ * https://developer.apple.com/documentation/arkit/arworldalignment
+ */
+export type WorldAlignment = $Enum<{
+  /**
+   * Aligns the world with gravity that is defined by vector (0, -1, 0).
+   */
+  gravity: string,
+  /**
+   * Aligns the world with gravity that is defined by the vector (0, -1, 0)
+   * and heading (w.r.t. True North) that is given by the vector (0, 0, -1).
+   */
+  gravityAndHeading: string,
+  /**
+   * Aligns the world with the camera’s orientation.
+   */
+  alignmentCamera: string,
+}>;
+
+export type EventType = $Enum<{
+  FRAME_DID_UPDATE: string,
+  DID_FAIL_WITH_ERROR: string,
+  ANCHORS_DID_UPDATE: string,
+  CAMERA_DID_CHANGE_TRACKING_STATE: string,
+  SESSION_WAS_INTERRUPTED: string,
+  SESSION_INTERRUPTION_ENDE: string,
+}>;
+
+export type AnchorType = $Enum<{
+  ARFaceAnchor: string,
+  ARImageAnchor: string,
+  ARPlaneAnchor: string,
+  ARAnchor: string,
+}>;
+
+/**
+ * Tracking Configuration
+ * Options for how ARKit constructs a scene coordinate system based on real-world device motion.
+ * https://developer.apple.com/documentation/arkit/arconfiguration
+ */
+export type TrackingConfiguration = $Enum<{
+  /**
+   * Provides high-quality AR experiences that use the rear-facing camera precisely track a device's position and orientation and allow plane detection and hit testing.
+   */
+  ARWorldTrackingConfiguration: string,
+  /**
+   * Provides basic AR experiences that use the rear-facing camera and track only a device's orientation.
+   */
+  AROrientationTrackingConfiguration: string,
+  /**
+   * Provides AR experiences that use the front-facing camera and track the movement and expressions of the user's face.
+   */
+  ARFaceTrackingConfiguration: string,
+}>;
+
+export type DepthDataQuality = $Enum<{
+  AVDepthDataQualityLow: string,
+  AVDepthDataQualityHigh: string,
+}>;
+
+export type DepthDataAccuracy = $Enum<{
+  AVDepthDataAccuracyAbsolute: string,
+  AVDepthDataAccuracyRelative: string,
+}>;
+
+type Subscription = {
+  remove: () => void,
+};
+
+export type Size = {
+  width: number,
+  height: number,
+};
+
+export type Vector3 = {
+  x: number,
+  y: number,
+  z: number,
+};
+
+export type Vector2 = {
+  x: number,
+  y: number,
+};
+
+export type TextureCoordinate = {
+  u: number,
+  v: number,
+};
+
+export type Matrix = Array<number>;
+
+export type FaceGeometry = {
+  vertexCount: number,
+  textureCoordinateCount: number,
+  triangleCount: number,
+  vertices: Array<Vector3>,
+  textureCoordinates: Array<TextureCoordinate>,
+  triangleIndices: Array<number>,
+};
+
+export type Anchor = {
+  type: AnchorType,
+  transform: Matrix,
+  id: string,
+  center?: Vector3,
+  extent?: Size,
+  image?: {
+    name: ?string,
+    size: Size,
+  },
+  geometry?: FaceGeometry,
+  blendShapes?: { [string]: number },
+};
+
+export type HitTest = {
+  type: number,
+  distance: number,
+  localTransform: Array<number>,
+  worldTransform: Array<number>,
+  anchor: Anchor,
+};
+
+export type HitTestResults = {
+  hitTest: HitTest,
+};
+
+export type DetectionImage = {
+  uri: string,
+  width: number,
+  name?: string,
+};
+
+export type ARFrameAnchorRequest = {
+  ARFaceTrackingConfiguration?: {
+    geometry?: boolean,
+    blendShapes?: boolean | { [BlendShape]: boolean },
+  },
+};
+
+export type ARFrameRequest = {
+  anchors?: ARFrameAnchorRequest,
+  rawFeaturePoints?: boolean,
+  lightEstimation?: boolean,
+  capturedDepthData?: boolean,
+};
+
+export type LightEstimation = {
+  ambientIntensity: number,
+  ambientColorTemperature: number,
+  primaryLightDirection?: Vector3,
+  primaryLightIntensity?: number,
+};
+
+export type RawFeaturePoint = { x: number, y: number, z: number, id: string };
+
+export type RawFeaturePoints = Array<RawFeaturePoint>;
+
+export type CameraCalibrationData = {
+  intrinsicMatrix: Matrix,
+  intrinsicMatrixReferenceDimensions: Size,
+  extrinsicMatrix: Matrix,
+  pixelSize: number,
+  lensDistortionLookupTable: any,
+  inverseLensDistortionLookupTable: any,
+  lensDistortionCenter: Vector3,
+};
+
+export type CapturedDepthData = {
+  timestamp: number,
+  depthDataQuality: DepthDataQuality,
+  depthDataAccuracy: DepthDataAccuracy,
+  depthDataFiltered: boolean,
+  cameraCalibrationData: CameraCalibrationData,
+};
+
+export type ARFrame = {
+  timestamp: number,
+  anchors?: ?Array<Anchor>,
+  rawFeaturePoints?: ?RawFeaturePoints,
+  lightEstimation?: ?LightEstimation,
+  capturedDepthData?: ?CapturedDepthData,
+};
+
+export type ARMatrices = {
+  transform: Matrix,
+  viewMatrix: Matrix,
+  projectionMatrix: Matrix,
+};
+
+export type StartResults = {
+  error?: string,
+  capturedImageTexture?: number,
+};
+
+type ReactNativeNodeHandle = number;
+
+export type ImageResolution = {
+  width: number,
+  height: number,
+};
+
+export type VideoFormat = {
+  type: string,
+  imageResolution: ImageResolution,
+  framesPerSecond: number,
+};
 
 export const BlendShapes = {
   BrowDownL: 'browDown_L',
@@ -61,26 +386,6 @@ export const BlendShapes = {
 };
 
 /**
- * Plane Detection
- * Options for whether and how ARKit detects flat surfaces in captured images.
- * https://developer.apple.com/documentation/arkit/arplanedetection?language
- */
-export type PlaneDetection = $Enum<{
-  /**
-   * No plane detection is run.
-   */
-  none: string,
-  /**
-   * Plane detection determines horizontal planes in the scene.
-   */
-  horizontal: string,
-  /**
-   * Plane detection determines vertical planes in the scene.
-   */
-  vertical: string,
-}>;
-
-/**
  * Plane Detection Types
  * Convenient constants
  */
@@ -89,38 +394,6 @@ export const PlaneDetectionTypes = {
   Horizontal: 'horizontal',
   Vertical: 'vertical',
 };
-
-/**
- * Hit Test Result Type
- * Possible types for specifying a hit-test search, or for the result of a hit-test search.
- * https://developer.apple.com/documentation/arkit/arhittestresulttype
- */
-export type HitTestResultType = $Enum<{
-  /**
-   * Result type from intersecting the nearest feature point.
-   */
-  featurePoint: string,
-  /**
-   * Result type from intersecting a horizontal plane estimate, determined for the current frame.
-   */
-  horizontalPlane: string,
-  /**
-   * Result type from intersecting a vertical plane estimate, determined for the current frame.
-   */
-  verticalPlane: string,
-  /**
-   * Result type from intersecting with an existing plane anchor.
-   */
-  existingPlane: string,
-  /**
-   * Result type from intersecting with an existing plane anchor, taking into account the plane’s extent.
-   */
-  existingPlaneUsingExtent: string,
-  /**
-   * Result type from intersecting with an existing plane anchor, taking into account the plane’s geometry.
-   */
-  existingPlaneUsingGeometry: string,
-}>;
 
 /**
  * Hit Test Result Types
@@ -134,27 +407,6 @@ export const HitTestResultTypes = {
   ExistingPlaneUsingExtent: 'existingPlaneUsingExtent',
   ExistingPlaneUsingGeometry: 'existingPlaneUsingGeometry',
 };
-
-/**
- * World Alignment
- * Options for how ARKit constructs a scene coordinate system based on real-world device motion.
- * https://developer.apple.com/documentation/arkit/arworldalignment
- */
-export type WorldAlignment = $Enum<{
-  /**
-   * Aligns the world with gravity that is defined by vector (0, -1, 0).
-   */
-  gravity: string,
-  /**
-   * Aligns the world with gravity that is defined by the vector (0, -1, 0)
-   * and heading (w.r.t. True North) that is given by the vector (0, 0, -1).
-   */
-  gravityAndHeading: string,
-  /**
-   * Aligns the world with the camera’s orientation.
-   */
-  alignmentCamera: string,
-}>;
 
 /**
  * World Alignment Types
@@ -221,33 +473,13 @@ export const TrackingStateReasons = {
   Relocalizing: 'ARTrackingStateReasonRelocalizing',
 };
 
-/**
- * Tracking Configuration
- * Options for how ARKit constructs a scene coordinate system based on real-world device motion.
- * https://developer.apple.com/documentation/arkit/arconfiguration
- */
-export type TrackingConfiguration = $Enum<{
-  /**
-   * Provides high-quality AR experiences that use the rear-facing camera precisely track a device's position and orientation and allow plane detection and hit testing.
-   */
-  ARWorldTrackingConfiguration: string,
-  /**
-   * Provides basic AR experiences that use the rear-facing camera and track only a device's orientation.
-   */
-  AROrientationTrackingConfiguration: string,
-  /**
-   * Provides AR experiences that use the front-facing camera and track the movement and expressions of the user's face.
-   */
-  ARFaceTrackingConfiguration: string,
-}>;
-
 export const TrackingConfigurations = {
   World: 'ARWorldTrackingConfiguration',
   Orientation: 'AROrientationTrackingConfiguration',
   Face: 'ARFaceTrackingConfiguration',
 };
 
-export function getVersion() {
+export function getVersion(): string {
   return ExponentAR.ARKitVersion;
 }
 
@@ -257,9 +489,10 @@ const AvailabilityErrorMessages = {
   ARKitOnlyOnIOS: `ARKit can only run on an iOS device! This is a`,
 };
 
-export function isAvailable() {
+export function isAvailable(): boolean {
   if (
     !Constants.isDevice || // Prevent Simulators
+    Platform.isTVOS ||
     Platform.OS !== 'ios' || // Device is iOS
     Constants.deviceYearClass < 2015 || // Device has A9 chip
     !ExponentAR.isSupported || // ARKit is included in the build
@@ -271,7 +504,7 @@ export function isAvailable() {
   return true;
 }
 
-export function getUnavailabilityReason() {
+export function getUnavailabilityReason(): string {
   if (!Constants.isDevice) {
     return AvailabilityErrorMessages.Simulator;
   } else if (Platform.OS !== 'ios') {
@@ -282,168 +515,161 @@ export function getUnavailabilityReason() {
   return 'Unknown Reason';
 }
 
-export function onFrameDidUpdate(listener) {
+export function onFrameDidUpdate(listener: Function): Subscription {
   return addListener(EventTypes.FrameDidUpdate, listener);
 }
 
-export function onDidFailWithError(listener) {
+export function onDidFailWithError(listener: Function): Subscription {
   return addListener(EventTypes.DidFailWithError, listener);
 }
 
-export function onAnchorsDidUpdate(listener) {
+export function onAnchorsDidUpdate(listener: Function): Subscription {
   return addListener(EventTypes.AnchorsDidUpdate, listener);
 }
 
-export function onCameraDidChangeTrackingState(listener) {
+export function onCameraDidChangeTrackingState(listener: Function): Subscription {
   return addListener(EventTypes.CameraDidChangeTrackingState, listener);
 }
 
-export function onSessionWasInterrupted(listener) {
+export function onSessionWasInterrupted(listener: Function): Subscription {
   return addListener(EventTypes.SessionWasInterrupted, listener);
 }
 
-export function onSessionInterruptionEnded(listener) {
+export function onSessionInterruptionEnded(listener: Function): Subscription {
   return addListener(EventTypes.SessionInterruptionEnded, listener);
 }
 
-function addListener(eventType, event) {
-  if (!isAvailable()) {
-    return {
-      remove: () => {},
-    };
+function removeListener(listener: Subscription) {
+  if (emitter.removeSubscription) emitter.removeSubscription(listener);
+}
+
+function addListener(eventType: EventType, event: Function): Subscription {
+  if (!emitter.addListener) {
+    console.warn('Expo.AR.addListener: Could not add listener for event: ', eventType);
+    return { remove: () => {} };
   }
   let listener = emitter.addListener(eventType, event);
-  listener.remove = () => this.removeListener && this.removeListener(listener);
-
+  listener.remove = () => removeListener(listener);
   return listener;
 }
 
-function removeListener(listener) {
-  if (!isAvailable()) return;
-  emitter.removeSubscription(listener);
+export function removeAllListeners(eventType: EventType) {
+  if (emitter.removeAllListeners) emitter.removeAllListeners(eventType);
 }
 
-export function removeAllListeners(eventType) {
-  if (!isAvailable()) return;
-  emitter.removeAllListeners(eventType);
+export function performHitTest(point: Vector2, types: HitTestResultType): ?HitTestResults {
+  if (ExponentAR.performHitTest) return ExponentAR.performHitTest(point, types);
 }
 
-export function performHitTest(point, types: HitTestResultType) {
-  if (!isAvailable()) return;
-  return ExponentAR.performHitTest(point, types);
+export async function setDetectionImagesAsync(images: { [string]: DetectionImage }): ?Promise<any> {
+  if (ExponentAR.setDetectionImagesAsync) return ExponentAR.setDetectionImagesAsync(images);
 }
 
-export async function setDetectionImagesAsync(images) {
-  if (!isAvailable()) return;
-  return ExponentAR.setDetectionImagesAsync(images);
+export function getCurrentFrame(attributes: ?ARFrameRequest): ?ARFrame {
+  if (ExponentAR.getCurrentFrame) return ExponentAR.getCurrentFrame(attributes);
 }
 
-export function getCurrentFrame(attributes) {
-  if (!isAvailable()) return;
-  return ExponentAR.getCurrentFrame(attributes);
+export function getARMatrices(near: number, far: number): ?ARMatrices {
+  if (ExponentAR.getARMatrices) return ExponentAR.getARMatrices(near, far);
 }
 
-export function getARMatrices(near: number, far: number) {
-  if (!isAvailable()) return;
-  return ExponentAR.getARMatrices(near, far);
+export function stopAsync(): ?Promise<any> {
+  if (ExponentAR.stopAsync) return ExponentAR.stopAsync();
 }
 
-export function stopAsync() {
-  if (!isAvailable()) return;
-  return ExponentAR.stopAsync();
+export function startAsync(
+  node: ReactNativeNodeHandle | React.Component<*>,
+  configuration: TrackingConfiguration
+): ?StartResults {
+  let handle = typeof node === 'number' ? node : _getNodeHandle(node);
+  return ExponentAR.startAsync && ExponentAR.startAsync(handle, configuration);
 }
 
-export function startAsync(view, configuration: TrackingConfiguration) {
-  if (!isAvailable()) return;
-  return ExponentAR.startAsync(view, configuration);
+function _getNodeHandle(component: React.Component<*>): ReactNativeNodeHandle {
+  let handle = findNodeHandle(component);
+  invariant(
+    handle != null,
+    `Could not find the React node handle for component to snapshot: %s`,
+    component
+  );
+  return handle;
 }
 
 export function reset() {
-  if (!isAvailable()) return;
-  ExponentAR.reset();
+  if (ExponentAR.reset) ExponentAR.reset();
 }
 
 export function resume() {
-  if (!isAvailable()) return;
-  ExponentAR.resume();
+  if (ExponentAR.resume) ExponentAR.resume();
 }
 
 export function pause() {
-  if (!isAvailable()) return;
-  ExponentAR.pause();
+  if (ExponentAR.pause) ExponentAR.pause();
 }
 
-export function setConfigurationAsync(configuration: TrackingConfiguration) {
-  if (!isAvailable()) return;
-  return ExponentAR.setConfigurationAsync(configuration);
+export function setConfigurationAsync(configuration: TrackingConfiguration): ?Promise<any> {
+  if (ExponentAR.setConfigurationAsync) return ExponentAR.setConfigurationAsync(configuration);
 }
 
-export function getProvidesAudioData() {
-  if (!isAvailable()) return;
-  return ExponentAR.getProvidesAudioData();
+export function getProvidesAudioData(): ?boolean {
+  if (ExponentAR.getProvidesAudioData) return ExponentAR.getProvidesAudioData();
 }
 
 export function setProvidesAudioData(providesAudioData: Boolean) {
-  if (!isAvailable()) return;
-  ExponentAR.setProvidesAudioData(providesAudioData);
+  if (ExponentAR.setProvidesAudioData) ExponentAR.setProvidesAudioData(providesAudioData);
 }
 
 export function setPlaneDetection(planeDetection: PlaneDetection) {
-  if (!isAvailable()) return;
-  ExponentAR.setPlaneDetection(planeDetection);
+  if (ExponentAR.setPlaneDetection) ExponentAR.setPlaneDetection(planeDetection);
 }
 
-export function getCameraTexture() {
-  if (!isAvailable()) return;
-  return ExponentAR.getCameraTexture();
+export function getCameraTexture(): ?number {
+  if (ExponentAR.getCameraTexture) return ExponentAR.getCameraTexture();
 }
 
-export function getPlaneDetection() {
-  if (!isAvailable()) return;
-  return ExponentAR.getPlaneDetection();
+export function getPlaneDetection(): ?PlaneDetection {
+  if (ExponentAR.getPlaneDetection) return ExponentAR.getPlaneDetection();
 }
 
-export function setWorldOriginAsync(matrix_float4x4) {
-  if (!isAvailable()) return;
-  return ExponentAR.setWorldOriginAsync(matrix_float4x4);
+export function setWorldOriginAsync(matrix_float4x4: Matrix): ?Promise<any> {
+  if (ExponentAR.setWorldOriginAsync) return ExponentAR.setWorldOriginAsync(matrix_float4x4);
 }
 
-export function setLightEstimationEnabled(value: Boolean) {
-  if (!isAvailable()) return;
-  ExponentAR.setLightEstimationEnabled(value);
+export function setLightEstimationEnabled(isLightEstimationEnabled: Boolean) {
+  if (ExponentAR.setLightEstimationEnabled)
+    return ExponentAR.setLightEstimationEnabled(isLightEstimationEnabled);
 }
 
-export function getLightEstimationEnabled() {
-  if (!isAvailable()) return;
-  return ExponentAR.getLightEstimationEnabled();
+export function getLightEstimationEnabled(): ?boolean {
+  if (ExponentAR.getLightEstimationEnabled) return ExponentAR.getLightEstimationEnabled();
 }
 
-export function setAutoFocusEnabled(value: Boolean) {
-  if (!isAvailable()) return;
-  ExponentAR.setAutoFocusEnabled(value);
+export function setAutoFocusEnabled(isAutoFocusEnabled: Boolean) {
+  if (ExponentAR.setAutoFocusEnabled) return ExponentAR.setAutoFocusEnabled(isAutoFocusEnabled);
 }
 
-export function getAutoFocusEnabled() {
-  if (!isAvailable()) return;
-  return ExponentAR.getAutoFocusEnabled();
+export function getAutoFocusEnabled(): ?boolean {
+  if (ExponentAR.getAutoFocusEnabled) return ExponentAR.getAutoFocusEnabled();
 }
 
 export function setWorldAlignment(worldAlignment: WorldAlignment) {
-  if (!isAvailable()) return;
-  ExponentAR.setWorldAlignment(worldAlignment);
+  if (ExponentAR.setWorldAlignment) ExponentAR.setWorldAlignment(worldAlignment);
 }
 
-export function getWorldAlignment() {
-  if (!isAvailable()) return;
-  return ExponentAR.getWorldAlignment();
+export function getWorldAlignment(): ?WorldAlignment {
+  if (ExponentAR.getWorldAlignment) return ExponentAR.getWorldAlignment();
 }
 
-export function isConfigurationAvailable(configuration: TrackingConfiguration) {
-  if (!isAvailable()) return;
-  return ExponentAR[configuration];
+export function isConfigurationAvailable(configuration: TrackingConfiguration): boolean {
+  const { width, height } = Dimensions.get('window');
+  const isX = (width === 812 || height === 812) && !Platform.isTVOS && !Platform.isPad;
+  if (configuration === TrackingConfigurations.Face && isX && isAvailable()) {
+    return true;
+  }
+  return !!ExponentAR[configuration];
 }
 
-export function getSupportedVideoFormats(configuration: TrackingConfiguration) {
+export function getSupportedVideoFormats(configuration: TrackingConfiguration): ?VideoFormat {
   const videoFormats = {
     [TrackingConfigurations.World]: 'WorldTrackingVideoFormats',
     [TrackingConfigurations.Orientation]: 'OrientationTrackingVideoFormats',
@@ -453,10 +679,10 @@ export function getSupportedVideoFormats(configuration: TrackingConfiguration) {
   return ExponentAR[videoFormat];
 }
 
-export function isFrontCameraAvailable() {
-  return ExponentAR[TrackingConfigurations.Face];
+export function isFrontCameraAvailable(): boolean {
+  return isConfigurationAvailable(TrackingConfigurations.Face);
 }
 
-export function isRearCameraAvailable() {
-  return ExponentAR[TrackingConfigurations.World];
+export function isRearCameraAvailable(): boolean {
+  return isConfigurationAvailable(TrackingConfigurations.World);
 }
