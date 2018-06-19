@@ -1,13 +1,12 @@
 'use strict';
 
-import { NativeModules, PixelRatio, Platform } from 'react-native';
+import { FileSystem as FS } from 'expo';
+import { PixelRatio, Platform } from 'react-native';
 import AssetRegistry from 'react-native/Libraries/Image/AssetRegistry';
 import AssetSourceResolver from 'react-native/Libraries/Image/AssetSourceResolver';
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 
 import Constants from './Constants';
-
-const FS = NativeModules.ExponentFileSystem;
 
 // Fast lookup check if assets are available in the local bundle.
 const bundledAssets = new Set(FS.bundledAssets || []);

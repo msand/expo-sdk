@@ -3,7 +3,7 @@ import './environment/validate';
 import './environment/logging';
 import './Location'; // polyfill navigator.geolocation
 
-import { NativeModules, YellowBox } from 'react-native';
+import { NativeModules, Platform, YellowBox } from 'react-native';
 import Constants from './Constants';
 
 // ignore annoying deprecation warnings stemming from react-native JS internals
@@ -56,7 +56,7 @@ module.exports = {
     return require('./takeSnapshotAsync').default;
   },
   get Accelerometer() {
-    return require('./sensor/Accelerometer').default;
+    return require('expo-sensors').Accelerometer;
   },
   get Asset() {
     return require('./Asset').default;
@@ -71,13 +71,13 @@ module.exports = {
     return require('./GLView').default;
   },
   get Gyroscope() {
-    return require('./sensor/Gyroscope').default;
+    return require('expo-sensors').Gyroscope;
   },
   get Magnetometer() {
-    return require('./sensor/Magnetometer').default;
+    return require('expo-sensors').Magnetometer;
   },
   get MagnetometerUncalibrated() {
-    return require('./sensor/MagnetometerUncalibrated').default;
+    return require('expo-sensors').MagnetometerUncalibrated;
   },
   get Notifications() {
     return require('./Notifications').default;
@@ -109,10 +109,10 @@ module.exports = {
     return require('./effects/BlurView').default;
   },
   get Camera() {
-    return require('./Camera').default;
+    return require('expo-camera').Camera;
   },
   get FaceDetector() {
-    return require('./FaceDetector').default;
+    return require('expo-face-detector').FaceDetector;
   },
   get GestureHandler() {
     return require('react-native-gesture-handler');
@@ -171,7 +171,7 @@ module.exports = {
     return require('./DocumentPicker');
   },
   get FileSystem() {
-    return require('./FileSystem');
+    return require('expo-file-system').FileSystem;
   },
   get Font() {
     return require('./Font');
@@ -207,7 +207,11 @@ module.exports = {
     return require('./MediaLibrary');
   },
   get Pedometer() {
-    return require('./Pedometer');
+    if (Platform.OS === 'android') {
+      return require('./Pedometer');
+    } else {
+      return require('expo-sensors').Pedometer;
+    }
   },
   get Permissions() {
     return require('./Permissions');

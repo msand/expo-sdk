@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react';
-import Camera from './Camera';
+import { Camera } from 'expo-camera';
 
 type Data = {
   data: string,

@@ -11,7 +11,7 @@ import {
   requireNativeComponent,
 } from 'react-native';
 
-import Camera from './Camera';
+import { Camera } from 'expo-camera';
 import Constants from './Constants';
 
 type Props = {
@@ -76,7 +76,10 @@ export default class GLView extends React.Component<Props> {
     return NativeModules.ExponentGLObjectManager.destroyContextAsync(exglCtxId);
   }
 
-  static async takeSnapshotAsync(exgl: WebGLRenderingContext | ?number, options: SnapshotOptions = {}) {
+  static async takeSnapshotAsync(
+    exgl: WebGLRenderingContext | ?number,
+    options: SnapshotOptions = {}
+  ) {
     const exglCtxId = getContextId(exgl);
     return NativeModules.ExponentGLObjectManager.takeSnapshotAsync(exglCtxId, options);
   }

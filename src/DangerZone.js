@@ -29,6 +29,6 @@ module.exports = {
     return require('./Print');
   },
   get DeviceMotion() {
-    return require('./sensor/DeviceMotion').default;
+    return require('expo-sensors').DeviceMotion;
   },
 };
