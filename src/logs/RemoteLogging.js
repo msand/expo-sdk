@@ -1,11 +1,11 @@
 // @flow
 
 import { EventEmitter, type EventSubscription } from 'fbemitter';
+import { Constants } from 'expo-constants';
 import invariant from 'invariant';
 import UUID from 'uuid-js';
 
 import LogSerialization from './LogSerialization';
-import Constants from '../Constants';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 

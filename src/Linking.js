@@ -3,7 +3,7 @@
 import { Linking } from 'react-native';
 import qs from 'qs';
 
-import Constants from './Constants';
+import { Constants } from 'expo-constants';
 
 type ParsedURL = {
   path: ?string,

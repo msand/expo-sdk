@@ -43,8 +43,11 @@
   },
   "homepage": "https://github.com/expo/expo-sdk",
   "dependencies": {
+    "expo-asset": "^1.0.0",
     "expo-camera": "^27.0.0",
+    "expo-constants": "^27.0.0",
     "expo-core": "^27.0.0",
+    "expo-gl": "^27.0.0",
     "expo-react-native-adapter": "^27.0.0",
     "expo-face-detector": "^27.0.0",
     "expo-file-system": "^27.0.0",

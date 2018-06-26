@@ -1,7 +1,7 @@
 // @flow
 
 import { NativeModules, Platform, Linking } from 'react-native';
-import Constants from './Constants';
+import { Constants } from 'expo-constants';
 
 /*
     * Platform must be iOS

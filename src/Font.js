@@ -1,10 +1,9 @@
 // @flow
 
 import invariant from 'invariant';
+import { Asset } from 'expo-asset';
+import { Constants } from 'expo-constants';
 import { NativeModules } from 'react-native';
-
-import Asset from './Asset';
-import Constants from './Constants';
 
 type FontSource = string | number | Asset;
 

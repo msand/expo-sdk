@@ -3,8 +3,8 @@ import './environment/validate';
 import './environment/logging';
 import './Location'; // polyfill navigator.geolocation
 
+import { Constants } from 'expo-constants';
 import { NativeModules, Platform, YellowBox } from 'react-native';
-import Constants from './Constants';
 
 // ignore annoying deprecation warnings stemming from react-native JS internals
 // TODO: remove this once there are no more calls to isMounted() in react-native
@@ -59,7 +59,7 @@ module.exports = {
     return require('expo-sensors').Accelerometer;
   },
   get Asset() {
-    return require('./Asset').default;
+    return require('expo-asset').Asset;
   },
   get AuthSession() {
     return require('./AuthSession').default;
@@ -68,7 +68,7 @@ module.exports = {
     return require('./ErrorRecovery').default;
   },
   get GLView() {
-    return require('./GLView').default;
+    return require('expo-gl').GLView;
   },
   get Gyroscope() {
     return require('expo-sensors').Gyroscope;
@@ -159,7 +159,7 @@ module.exports = {
     return require('./Calendar');
   },
   get Constants() {
-    return require('./Constants').default;
+    return require('expo-constants').Constants;
   },
   get Contacts() {
     return require('./Contacts');

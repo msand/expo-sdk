@@ -1,9 +1,9 @@
 // @flow
 
+import { Constants } from 'expo-constants';
 import { Platform } from 'react-native';
 import qs from 'qs';
 
-import Constants from './Constants';
 import Linking from './Linking';
 import WebBrowser from './WebBrowser';
 

@@ -1,6 +1,6 @@
 // @flow
 
-import Asset from '../Asset';
+import { Asset } from 'expo-asset';
 
 // TODO add:
 //  disableFocusOnAndroid

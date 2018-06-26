@@ -9,7 +9,7 @@ import {
   Platform,
 } from 'react-native';
 
-import Constants from './Constants';
+import { Constants } from 'expo-constants';
 
 const ExponentAR = NativeModules.ExponentAR || {};
 
