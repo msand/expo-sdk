@@ -229,13 +229,13 @@ export type Anchor = {
   transform: Matrix,
   id: string,
   center?: Vector3,
-  extent?: Size,
+  extent?: { width: number, length: number },
   image?: {
     name: ?string,
     size: Size,
   },
   geometry?: FaceGeometry,
-  blendShapes?: { [string]: number },
+  blendShapes?: { [BlendShape]: number },
 };
 
 export type HitTest = {
@@ -259,7 +259,7 @@ export type DetectionImage = {
 export type ARFrameAnchorRequest = {
   ARFaceTrackingConfiguration?: {
     geometry?: boolean,
-    blendShapes?: boolean | { [BlendShape]: boolean },
+    blendShapes?: boolean | Array<BlendShape>,
   },
 };
 
@@ -278,8 +278,6 @@ export type LightEstimation = {
 };
 
 export type RawFeaturePoint = { x: number, y: number, z: number, id: string };
-
-export type RawFeaturePoints = Array<RawFeaturePoint>;
 
 export type CameraCalibrationData = {
   intrinsicMatrix: Matrix,
@@ -302,7 +300,7 @@ export type CapturedDepthData = {
 export type ARFrame = {
   timestamp: number,
   anchors?: ?Array<Anchor>,
-  rawFeaturePoints?: ?RawFeaturePoints,
+  rawFeaturePoints?: ?Array<RawFeaturePoint>,
   lightEstimation?: ?LightEstimation,
   capturedDepthData?: ?CapturedDepthData,
 };
@@ -383,6 +381,11 @@ export const BlendShapes = {
   MouthUpperUpR: 'mouthUpperUp_R',
   NoseSneerL: 'noseSneer_L',
   NoseSneerR: 'noseSneer_R',
+};
+
+export const FaceAnchorProps = {
+  Geometry: 'geometry',
+  BlendShapes: 'blendShapes',
 };
 
 /**
@@ -637,7 +640,7 @@ export function setWorldOriginAsync(matrix_float4x4: Matrix): ?Promise<any> {
 
 export function setLightEstimationEnabled(isLightEstimationEnabled: Boolean) {
   if (ExponentAR.setLightEstimationEnabled)
-    return ExponentAR.setLightEstimationEnabled(isLightEstimationEnabled);
+    ExponentAR.setLightEstimationEnabled(isLightEstimationEnabled);
 }
 
 export function getLightEstimationEnabled(): ?boolean {
@@ -645,7 +648,7 @@ export function getLightEstimationEnabled(): ?boolean {
 }
 
 export function setAutoFocusEnabled(isAutoFocusEnabled: Boolean) {
-  if (ExponentAR.setAutoFocusEnabled) return ExponentAR.setAutoFocusEnabled(isAutoFocusEnabled);
+  if (ExponentAR.setAutoFocusEnabled) ExponentAR.setAutoFocusEnabled(isAutoFocusEnabled);
 }
 
 export function getAutoFocusEnabled(): ?boolean {
