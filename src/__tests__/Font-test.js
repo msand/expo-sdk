@@ -1,9 +1,11 @@
 import { mockProperty } from '../../test/mocking';
 
-jest.mock('../Asset');
-jest.mock('../Constants', () => ({
-  sessionId: 'testsession',
-  systemFonts: ['Helvetica', 'Helvetica Neue'],
+jest.mock('expo-constants', () => ({
+  Constants: {
+    manifest: {},
+    sessionId: 'testsession',
+    systemFonts: ['Helvetica', 'Helvetica Neue'],
+  },
 }));
 
 let NativeModules;

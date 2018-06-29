@@ -51,6 +51,16 @@ describe(`importing Expo`, () => {
       });
     }
 
+    // Silence "No native module found" warnings raised in erna and expo-constants
+    const warn = console.warn;
+
+    global.console.warn = str => {
+      let tst = (str || '') + '';
+      if (!tst.includes('No native')) {
+        warn.apply(console, [str]);
+      }
+    };
+
     expect(() => require('../Expo')).toThrowErrorMatchingSnapshot();
   });
 });
