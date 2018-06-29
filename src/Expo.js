@@ -17,12 +17,12 @@ if (typeof Constants.manifest.env === 'object') {
 // ignore annoying deprecation warnings stemming from react-native JS internals
 // TODO: remove this once there are no more calls to isMounted() in react-native
 global.__old_console_warn = global.__old_console_warn || console.warn;
-global.console.warn = str => {
-  let tst = (str || '') + '';
+global.console.warn = (...args) => {
+  let tst = (args[0] || '') + '';
   if (tst.startsWith('Warning: isMounted(...) is deprecated')) {
     return;
   }
-  return global.__old_console_warn.apply(console, [str]);
+  return global.__old_console_warn.apply(console, args);
 };
 
 // NOTE(brentvatne): this is temporarily disabled until we can work out bugs with ref and context
